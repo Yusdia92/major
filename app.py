@@ -378,15 +378,10 @@ class Major:
                     await self.visit(token=account['token'], first_name=account['first_name'])
                     streak = await self.streak(token=account['token'], first_name=account['first_name'])
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
-                    rating = user['rating'] if user else 0
-
-                    if user:
-                        total_rating += user['rating']
-
                     self.print_timestamp(
                         f"{Fore.CYAN + Style.BRIGHT}[ {account['first_name']} ]{Style.RESET_ALL}"
                         f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                        f"{Fore.GREEN + Style.BRIGHT}[ Balance {rating} ]{Style.RESET_ALL}"
+                        f"{Fore.GREEN + Style.BRIGHT}[ Balance {user['rating'] if user else 0} ]{Style.RESET_ALL}"
                         f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
                         f"{Fore.BLUE + Style.BRIGHT}[ Streak {streak['streak'] if streak else 0} ]{Style.RESET_ALL}"
                     )
@@ -409,6 +404,12 @@ class Major:
                     await self.coins(token=account['token'], first_name=account['first_name'], reward_coins=915)
                     await self.roulette(token=account['token'], first_name=account['first_name'])
                     await self.swipe_coin(token=account['token'], first_name=account['first_name'], reward_swipe_coins=3200)
+
+                    user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
+                    rating = user['rating'] if user else 0
+
+                    if user:
+                        total_rating += rating
 
                 self.print_timestamp(
                     f"{Fore.CYAN + Style.BRIGHT}[ Total Account {len(accounts)} ]{Style.RESET_ALL}"
