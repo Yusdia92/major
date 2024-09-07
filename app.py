@@ -406,10 +406,8 @@ class Major:
                     await self.swipe_coin(token=account['token'], first_name=account['first_name'], reward_swipe_coins=3200)
 
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
-                    rating = user['rating'] if user else 0
-
                     if user:
-                        total_rating += rating
+                        total_rating += user['rating'] if user else 0
 
                 self.print_timestamp(
                     f"{Fore.CYAN + Style.BRIGHT}[ Total Account {len(accounts)} ]{Style.RESET_ALL}"
