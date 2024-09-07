@@ -372,17 +372,23 @@ class Major:
             try:
                 queries = [line.strip() for line in open('queries.txt') if line.strip()]
                 accounts = await self.tg_auth(queries=queries)
+                total_rating = 0
                 for account in accounts:
                     self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ {account['first_name']} Information ]{Style.RESET_ALL}")
                     await self.visit(token=account['token'], first_name=account['first_name'])
                     streak = await self.streak(token=account['token'], first_name=account['first_name'])
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
+                    rating = user['rating'] if user else 0
+
+                    if user:
+                        total_rating += user['rating']
+
                     self.print_timestamp(
                         f"{Fore.CYAN + Style.BRIGHT}[ {account['first_name']} ]{Style.RESET_ALL}"
                         f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                        f"{Fore.GREEN + Style.BRIGHT}[ Balance {user['rating'] if user else 'Error'} ]{Style.RESET_ALL}"
+                        f"{Fore.GREEN + Style.BRIGHT}[ Balance {rating} ]{Style.RESET_ALL}"
                         f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                        f"{Fore.BLUE + Style.BRIGHT}[ Streak {streak['streak'] if streak else 'Error'} ]{Style.RESET_ALL}"
+                        f"{Fore.BLUE + Style.BRIGHT}[ Streak {streak['streak'] if streak else 0} ]{Style.RESET_ALL}"
                     )
                     if user['squad_id'] is None:
                         await self.join_squad(token=account['token'], first_name=account['first_name'])
@@ -403,6 +409,12 @@ class Major:
                     await self.coins(token=account['token'], first_name=account['first_name'], reward_coins=915)
                     await self.roulette(token=account['token'], first_name=account['first_name'])
                     await self.swipe_coin(token=account['token'], first_name=account['first_name'], reward_swipe_coins=3200)
+
+                self.print_timestamp(
+                    f"{Fore.CYAN + Style.BRIGHT}[ Total Account {len(accounts)} ]{Style.RESET_ALL}"
+                    f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+                    f"{Fore.GREEN + Style.BRIGHT}[ Total Balance {total_rating} ]{Style.RESET_ALL}"
+                )
 
                 sleep_timestamp = datetime.now().astimezone() + timedelta(seconds=1800)
                 timestamp_sleep_time = sleep_timestamp.strftime('%X %Z')
