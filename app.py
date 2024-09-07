@@ -1,5 +1,5 @@
 from colorama import *
-from datetime import datetime
+from datetime import datetime, timedelta
 from fake_useragent import FakeUserAgent
 from faker import Faker
 import aiohttp
@@ -395,13 +395,20 @@ class Major:
                     for type in ['true', 'false']:
                         tasks = await self.tasks(token=account['token'], type=type, first_name=account['first_name'])
                         for task in tasks:
-                            await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
-                            await asyncio.sleep(3)
+                            if task['is_completed'] == False:
+                                await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
+                                await asyncio.sleep(3)
                 for account in accounts:
                     self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ {account['first_name']} Games ]{Style.RESET_ALL}")
                     await self.coins(token=account['token'], first_name=account['first_name'], reward_coins=915)
                     await self.roulette(token=account['token'], first_name=account['first_name'])
                     await self.swipe_coin(token=account['token'], first_name=account['first_name'], reward_swipe_coins=3200)
+
+                sleep_timestamp = datetime.now().astimezone() + timedelta(seconds=1800)
+                timestamp_sleep_time = sleep_timestamp.strftime('%X %Z')
+                self.print_timestamp(f"{Fore.CYAN + Style.BRIGHT}[ Restarting At {timestamp_sleep_time} ]{Style.RESET_ALL}")
+                await asyncio.sleep(1800)
+                self.clear_terminal()
             except Exception as e:
                 self.print_timestamp(f"{Fore.RED + Style.BRIGHT}[ {str(e)} ]{Style.RESET_ALL}")
                 continue
