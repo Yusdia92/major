@@ -453,9 +453,8 @@ class Major:
                     f"{Fore.GREEN + Style.BRIGHT}[ Total Balance {total_rating} ]{Style.RESET_ALL}"
                 )
 
-                sleep_timestamp = datetime.now().astimezone() + timedelta(seconds=1800)
-                timestamp_sleep_time = sleep_timestamp.strftime('%X %Z')
-                self.print_timestamp(f"{Fore.CYAN + Style.BRIGHT}[ Restarting At {timestamp_sleep_time} ]{Style.RESET_ALL}")
+                sleep_timestamp = (datetime.now().astimezone() + timedelta(seconds=1800)).strftime('%X %Z')
+                self.print_timestamp(f"{Fore.CYAN + Style.BRIGHT}[ Restarting At {sleep_timestamp} ]{Style.RESET_ALL}")
 
                 await asyncio.sleep(1800)
                 self.clear_terminal()
