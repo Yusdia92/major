@@ -397,8 +397,8 @@ class Major:
                 accounts = await self.tg_auth(queries=queries)
                 total_rating = 0
 
+                self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ Information ]{Style.RESET_ALL}")
                 for account in accounts:
-                    self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ {account['first_name']} Information ]{Style.RESET_ALL}")
                     await self.visit(token=account['token'], first_name=account['first_name'])
 
                     streak = await self.streak(token=account['token'], first_name=account['first_name'])
@@ -424,8 +424,8 @@ class Major:
                     elif user['squad_id'] == 1904705154:
                         await self.squad(token=account['token'], first_name=account['first_name'], squad_id=user['squad_id'])
 
+                self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ Tasks ]{Style.RESET_ALL}")
                 for account in accounts:
-                    self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ {account['first_name']} Tasks ]{Style.RESET_ALL}")
                     for type in ['true', 'false']:
                         tasks = await self.tasks(token=account['token'], type=type, first_name=account['first_name'])
                         if tasks is None:
@@ -438,8 +438,8 @@ class Major:
                                 await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
                                 await asyncio.sleep(1)
 
+                self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ Games ]{Style.RESET_ALL}")
                 for account in accounts:
-                    self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ {account['first_name']} Games ]{Style.RESET_ALL}")
                     await self.coins(token=account['token'], first_name=account['first_name'], reward_coins=915)
                     await self.roulette(token=account['token'], first_name=account['first_name'])
                     await self.swipe_coin(token=account['token'], first_name=account['first_name'], reward_swipe_coins=3200)
@@ -450,7 +450,7 @@ class Major:
                 self.print_timestamp(
                     f"{Fore.CYAN + Style.BRIGHT}[ Total Account {len(accounts)} ]{Style.RESET_ALL}"
                     f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                    f"{Fore.GREEN + Style.BRIGHT}[ Total Balance {total_rating} ]{Style.RESET_ALL}"
+                    f"{Fore.GREEN + Style.BRIGHT}[ Total Rating {total_rating} ]{Style.RESET_ALL}"
                 )
 
                 sleep_timestamp = (datetime.now().astimezone() + timedelta(seconds=1800)).strftime('%X %Z')
@@ -473,7 +473,6 @@ if __name__ == '__main__':
         queries_files = [f for f in os.listdir() if f.startswith('queries-') and f.endswith('.txt')]
         queries_files.sort(key=lambda x: int(re.findall(r'\d+', x)[0]) if re.findall(r'\d+', x) else 0)
 
-        major.print_timestamp(f"{Fore.MAGENTA + Style.BRIGHT}[ Select An Option ]{Style.RESET_ALL}")
         major.print_timestamp(
             f"{Fore.MAGENTA + Style.BRIGHT}[ 1 ]{Style.RESET_ALL}"
             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
@@ -484,14 +483,21 @@ if __name__ == '__main__':
             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
             f"{Fore.CYAN + Style.BRIGHT}[ Use Existing 'queries-*.txt' ]{Style.RESET_ALL}"
         )
-
+        major.print_timestamp(
+            f"{Fore.MAGENTA + Style.BRIGHT}[ 3 ]{Style.RESET_ALL}"
+            f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+            f"{Fore.CYAN + Style.BRIGHT}[ Use 'queries.txt' Without Splitting ]{Style.RESET_ALL}"
+        )
         initial_choice = int(input(
-            f"{Fore.CYAN + Style.BRIGHT}[ Enter The Number Corresponding To Your Choice ]{Style.RESET_ALL}"
+            f"{Fore.BLUE + Style.BRIGHT}[ {datetime.now().astimezone().strftime('%x %X %Z')} ]{Style.RESET_ALL}"
+            f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+            f"{Fore.YELLOW + Style.BRIGHT}[ Select An Option ]{Style.RESET_ALL}"
             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
         ))
+
         if initial_choice == 1:
             accounts = int(input(
-                f"{Fore.CYAN + Style.BRIGHT}[ How Much Account That You Want To Process Each Terminal ]{Style.RESET_ALL}"
+                f"{Fore.YELLOW + Style.BRIGHT}[ How Much Account That You Want To Process Each Terminal ]{Style.RESET_ALL}"
                 f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
             ))
             major.print_timestamp(f"{Fore.CYAN + Style.BRIGHT}[ Processing Queries To Generate Files ]{Style.RESET_ALL}")
@@ -505,26 +511,31 @@ if __name__ == '__main__':
         elif initial_choice == 2:
             if not queries_files:
                 raise FileNotFoundError("No 'queries-*.txt' Files Found")
+        elif initial_choice == 3:
+            queries = [line.strip() for line in open('queries.txt') if line.strip()]
         else:
             raise ValueError("Invalid Initial Choice. Please Run The Script Again And Choose A Valid Option")
 
-        major.print_timestamp(f"{Fore.MAGENTA + Style.BRIGHT}[ Select The Queries File To Use ]{Style.RESET_ALL}")
-        for i, queries_file in enumerate(queries_files, start=1):
-            major.print_timestamp(
-                f"{Fore.MAGENTA + Style.BRIGHT}[ {i} ]{Style.RESET_ALL}"
+        if initial_choice in [1, 2]:
+            major.print_timestamp(f"{Fore.MAGENTA + Style.BRIGHT}[ Select The Queries File To Use ]{Style.RESET_ALL}")
+            for i, queries_file in enumerate(queries_files, start=1):
+                major.print_timestamp(
+                    f"{Fore.MAGENTA + Style.BRIGHT}[ {i} ]{Style.RESET_ALL}"
+                    f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+                    f"{Fore.CYAN + Style.BRIGHT}[ {queries_file} ]{Style.RESET_ALL}"
+                )
+
+            choice = int(input(
+                f"{Fore.BLUE + Style.BRIGHT}[ {datetime.now().astimezone().strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                 f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                f"{Fore.CYAN + Style.BRIGHT}[ {queries_file} ]{Style.RESET_ALL}"
-            )
+                f"{Fore.YELLOW + Style.BRIGHT}[ Select 'queries-*.txt' File ]{Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+            )) - 1
+            if choice < 0 or choice >= len(queries_files):
+                raise ValueError("Invalid Choice. Please Run The Script Again And Choose A Valid Option")
 
-        choice = int(input(
-            f"{Fore.CYAN + Style.BRIGHT}[ Enter The Number Corresponding To The File You Want To Use ]{Style.RESET_ALL}"
-            f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-        )) - 1
-        if choice < 0 or choice >= len(queries_files):
-            raise ValueError("Invalid Choice. Please Run The Script Again And Choose A Valid Option")
-
-        selected_file = queries_files[choice]
-        queries = major.load_queries(selected_file)
+            selected_file = queries_files[choice]
+            queries = major.load_queries(selected_file)
 
         asyncio.run(major.main(queries=queries))
     except (ValueError, IndexError, FileNotFoundError) as e:
