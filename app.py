@@ -6,6 +6,7 @@ import aiohttp
 import asyncio
 import json
 import os
+import re
 import sys
 
 class Major:
@@ -37,6 +38,48 @@ class Major:
             flush=True
         )
 
+    def load_queries(self, file_path):
+        with open(file_path, 'r') as file:
+            return [line.strip() for line in file if line.strip()]
+
+    def process_queries(self, lines_per_file: int):
+        if not os.path.exists('queries.txt'):
+            raise FileNotFoundError(f"File 'queries.txt' not found. Please ensure it exists.")
+
+        with open('queries.txt', 'r') as f:
+            queries = [line.strip() for line in f if line.strip()]
+        if not queries:
+            raise ValueError("File 'queries.txt' is empty.")
+
+        existing_queries = set()
+        for file in os.listdir():
+            if file.startswith('queries-') and file.endswith('.txt'):
+                with open(file, 'r') as qf:
+                    existing_queries.update(line.strip() for line in qf if line.strip())
+
+        new_queries = [query for query in queries if query not in existing_queries]
+        if not new_queries:
+            self.print_timestamp(f"{Fore.YELLOW + Style.BRIGHT}[ No New Queries To Add ]{Style.RESET_ALL}")
+            return
+
+        files = [f for f in os.listdir() if f.startswith('queries-') and f.endswith('.txt')]
+        files.sort(key=lambda x: int(re.findall(r'\d+', x)[0]) if re.findall(r'\d+', x) else 0)
+
+        last_file_number = int(re.findall(r'\d+', files[-1])[0]) if files else 0
+
+        for i in range(0, len(new_queries), lines_per_file):
+            chunk = new_queries[i:i + lines_per_file]
+            if files and len(open(files[-1], 'r').readlines()) < lines_per_file:
+                with open(files[-1], 'a') as outfile:
+                    outfile.write('\n'.join(chunk) + '\n')
+                self.print_timestamp(f"{Fore.GREEN + Style.BRIGHT}[ Updated '{files[-1]}' ]{Style.RESET_ALL}")
+            else:
+                last_file_number += 1
+                queries_file = f"queries-{last_file_number}.txt"
+                with open(queries_file, 'w') as outfile:
+                    outfile.write('\n'.join(chunk) + '\n')
+                self.print_timestamp(f"{Fore.GREEN + Style.BRIGHT}[ Generated '{queries_file}' ]{Style.RESET_ALL}")
+
     async def tg_auth(self, queries: str):
         url = 'https://major.glados.app/api/auth/tg/'
         accounts = []
@@ -53,32 +96,33 @@ class Major:
             }
             try:
                 async with aiohttp.ClientSession() as session:
-                    async with session.post(url, headers=headers, data=data, timeout=20) as response:
+                    async with session.post(url, headers=headers, data=data) as response:
                         response.raise_for_status()
                         tg_auth = await response.json()
                         token = f"Bearer {tg_auth['access_token']}"
                         id = tg_auth['user']['id']
                         first_name = tg_auth['user']['first_name'] or self.faker.first_name()
                         accounts.append({'first_name': first_name, 'id': id, 'token': token})
-            except (aiohttp.ClientResponseError, aiohttp.ContentTypeError, KeyError) as e:
+            except (aiohttp.ClientResponseError, aiohttp.ContentTypeError, Exception) as e:
                 self.print_timestamp(
                     f"{Fore.YELLOW + Style.BRIGHT}[ Failed To Process {query} ]{Style.RESET_ALL}"
                     f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
                     f"{Fore.RED + Style.BRIGHT}[ {str(e)} ]{Style.RESET_ALL}"
                 )
+                continue
         return accounts
 
     async def visit(self, token: str, first_name: str):
         url = 'https://major.glados.app/api/user-visits/visit/'
+        data = json.dumps({})
         headers = {
             **self.headers,
             'Authorization': token,
-            'Content-Length': '0',
-            'Origin': 'https://major.glados.app'
+            'Content-Length': str(len(data))
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url=url, headers=headers, timeout=20) as response:
+                async with session.post(url=url, headers=headers, data=data) as response:
                     response.raise_for_status()
                     visit = await response.json()
                     if visit['is_increased']:
@@ -113,7 +157,7 @@ class Major:
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=url, headers=headers, timeout=20) as response:
+                async with session.get(url=url, headers=headers) as response:
                     response.raise_for_status()
                     return await response.json()
         except (aiohttp.ContentTypeError, aiohttp.ClientResponseError) as e:
@@ -129,7 +173,7 @@ class Major:
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=url, headers=headers, timeout=20) as response:
+                async with session.get(url=url, headers=headers) as response:
                     response.raise_for_status()
                     return await response.json()
         except (aiohttp.ContentTypeError, aiohttp.ClientResponseError) as e:
@@ -162,15 +206,15 @@ class Major:
 
     async def join_squad(self, token: str, first_name: str):
         url = f'https://major.glados.app/api/squads/1904705154/join/'
+        data = json.dumps({})
         headers = {
             **self.headers,
             'Authorization': token,
-            'Content-Length': '0',
-            'Origin': 'https://major.glados.app'
+            'Content-Length': str(len(data))
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url=url, headers=headers, timeout=20) as response:
+                async with session.post(url=url, headers=headers, data=data) as response:
                     response.raise_for_status()
                     join_squad = await response.json()
                     if join_squad['status'] == 'ok':
@@ -182,15 +226,15 @@ class Major:
 
     async def leave_squad(self, token: str, first_name: str):
         url = f'https://major.glados.app/api/squads/leave/'
+        data = json.dumps({})
         headers = {
             **self.headers,
             'Authorization': token,
-            'Content-Length': '0',
-            'Origin': 'https://major.glados.app'
+            'Content-Length': str(len(data))
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url=url, headers=headers, timeout=20) as response:
+                async with session.post(url=url, headers=headers, data=data) as response:
                     response.raise_for_status()
                     leave_squad = await response.json()
                     if leave_squad['status'] == 'ok':
@@ -208,7 +252,7 @@ class Major:
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url=url, headers=headers, timeout=20) as response:
+                async with session.get(url=url, headers=headers) as response:
                     response.raise_for_status()
                     return await response.json()
         except (aiohttp.ContentTypeError, aiohttp.ClientResponseError) as e:
@@ -223,12 +267,11 @@ class Major:
             **self.headers,
             'Authorization': token,
             'Content-Length': str(len(data)),
-            'Content-Type': 'application/json',
-            'Origin': 'https://major.glados.app'
+            'Content-Type': 'application/json'
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url=url, headers=headers, data=data, timeout=20) as response:
+                async with session.post(url=url, headers=headers, data=data) as response:
                     response.raise_for_status()
                     complete_task = await response.json()
                     if complete_task['is_completed']:
@@ -249,12 +292,11 @@ class Major:
             **self.headers,
             'Authorization': token,
             'Content-Length': str(len(data)),
-            'Content-Type': 'application/json',
-            'Origin': 'https://major.glados.app'
+            'Content-Type': 'application/json'
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url=url, headers=headers, data=data, timeout=20) as response:
+                async with session.post(url=url, headers=headers, data=data) as response:
                     if response.status == 400:
                         error_coins = await response.json()
                         if 'detail' in error_coins:
@@ -281,15 +323,15 @@ class Major:
 
     async def roulette(self, token: str, first_name: str):
         url = 'https://major.glados.app/api/roulette/'
+        data = json.dumps({})
         headers = {
             **self.headers,
             'Authorization': token,
-            'Content-Length': '0',
-            'Origin': 'https://major.glados.app'
+            'Content-Length': str(len(data))
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url=url, headers=headers, timeout=20) as response:
+                async with session.post(url=url, headers=headers, data=data) as response:
                     if response.status == 400:
                         error_coins = await response.json()
                         if 'detail' in error_coins:
@@ -320,12 +362,11 @@ class Major:
             **self.headers,
             'Authorization': token,
             'Content-Length': str(len(data)),
-            'Content-Type': 'application/json',
-            'Origin': 'https://major.glados.app'
+            'Content-Type': 'application/json'
         }
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(url=url, headers=headers, data=data, timeout=20) as response:
+                async with session.post(url=url, headers=headers, data=data) as response:
                     if response.status == 400:
                         error_coins = await response.json()
                         if 'detail' in error_coins:
@@ -350,10 +391,9 @@ class Major:
         except Exception as e:
             return self.print_timestamp(f"{Fore.RED + Style.BRIGHT}[ {first_name} An Unexpected Error Occurred While Play Swipe Coin: {str(e)} ]{Style.RESET_ALL}")
 
-    async def main(self):
+    async def main(self, queries: str):
         while True:
             try:
-                queries = [line.strip() for line in open('queries.txt') if line.strip()]
                 accounts = await self.tg_auth(queries=queries)
                 total_rating = 0
 
@@ -363,6 +403,12 @@ class Major:
 
                     streak = await self.streak(token=account['token'], first_name=account['first_name'])
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
+                    if user is None:
+                        self.print_timestamp(
+                            f"{Fore.RED + Style.BRIGHT}[ Failed To Retrieve User Balance For {account['username']} ]{Style.RESET_ALL}"
+                        )
+                        continue
+
                     self.print_timestamp(
                         f"{Fore.CYAN + Style.BRIGHT}[ {account['first_name']} ]{Style.RESET_ALL}"
                         f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
@@ -382,10 +428,15 @@ class Major:
                     self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ {account['first_name']} Tasks ]{Style.RESET_ALL}")
                     for type in ['true', 'false']:
                         tasks = await self.tasks(token=account['token'], type=type, first_name=account['first_name'])
+                        if tasks is None:
+                            self.print_timestamp(
+                                f"{Fore.RED + Style.BRIGHT}[ Failed To Retrieve Tasks For {account['username']} ]{Style.RESET_ALL}"
+                            )
+                            continue
                         for task in tasks:
                             if task['is_completed'] == False:
                                 await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
-                                await asyncio.sleep(3)
+                                await asyncio.sleep(1)
 
                 for account in accounts:
                     self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ {account['first_name']} Games ]{Style.RESET_ALL}")
@@ -394,8 +445,7 @@ class Major:
                     await self.swipe_coin(token=account['token'], first_name=account['first_name'], reward_swipe_coins=3200)
 
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
-                    if user:
-                        total_rating += user['rating'] if user else 0
+                    total_rating += user['rating'] if user else 0
 
                 self.print_timestamp(
                     f"{Fore.CYAN + Style.BRIGHT}[ Total Account {len(accounts)} ]{Style.RESET_ALL}"
@@ -415,8 +465,70 @@ class Major:
 
 if __name__ == '__main__':
     try:
+        if hasattr(asyncio, 'WindowsSelectorEventLoopPolicy'):
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
         init(autoreset=True)
         major = Major()
-        asyncio.run(major.main())
+
+        queries_files = [f for f in os.listdir() if f.startswith('queries-') and f.endswith('.txt')]
+        queries_files.sort(key=lambda x: int(re.findall(r'\d+', x)[0]) if re.findall(r'\d+', x) else 0)
+
+        major.print_timestamp(f"{Fore.MAGENTA + Style.BRIGHT}[ Select An Option ]{Style.RESET_ALL}")
+        major.print_timestamp(
+            f"{Fore.MAGENTA + Style.BRIGHT}[ 1 ]{Style.RESET_ALL}"
+            f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+            f"{Fore.CYAN + Style.BRIGHT}[ Split Queries ]{Style.RESET_ALL}"
+        )
+        major.print_timestamp(
+            f"{Fore.MAGENTA + Style.BRIGHT}[ 2 ]{Style.RESET_ALL}"
+            f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+            f"{Fore.CYAN + Style.BRIGHT}[ Use Existing 'queries-*.txt' ]{Style.RESET_ALL}"
+        )
+
+        initial_choice = int(input(
+            f"{Fore.CYAN + Style.BRIGHT}[ Enter The Number Corresponding To Your Choice ]{Style.RESET_ALL}"
+            f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+        ))
+        if initial_choice == 1:
+            accounts = int(input(
+                f"{Fore.CYAN + Style.BRIGHT}[ How Much Account That You Want To Process Each Terminal ]{Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+            ))
+            major.print_timestamp(f"{Fore.CYAN + Style.BRIGHT}[ Processing Queries To Generate Files ]{Style.RESET_ALL}")
+            major.process_queries(lines_per_file=accounts)
+
+            queries_files = [f for f in os.listdir() if f.startswith('queries-') and f.endswith('.txt')]
+            queries_files.sort(key=lambda x: int(re.findall(r'\d+', x)[0]) if re.findall(r'\d+', x) else 0)
+
+            if not queries_files:
+                raise FileNotFoundError("No 'queries-*.txt' Files Found")
+        elif initial_choice == 2:
+            if not queries_files:
+                raise FileNotFoundError("No 'queries-*.txt' Files Found")
+        else:
+            raise ValueError("Invalid Initial Choice. Please Run The Script Again And Choose A Valid Option")
+
+        major.print_timestamp(f"{Fore.MAGENTA + Style.BRIGHT}[ Select The Queries File To Use ]{Style.RESET_ALL}")
+        for i, queries_file in enumerate(queries_files, start=1):
+            major.print_timestamp(
+                f"{Fore.MAGENTA + Style.BRIGHT}[ {i} ]{Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+                f"{Fore.CYAN + Style.BRIGHT}[ {queries_file} ]{Style.RESET_ALL}"
+            )
+
+        choice = int(input(
+            f"{Fore.CYAN + Style.BRIGHT}[ Enter The Number Corresponding To The File You Want To Use ]{Style.RESET_ALL}"
+            f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+        )) - 1
+        if choice < 0 or choice >= len(queries_files):
+            raise ValueError("Invalid Choice. Please Run The Script Again And Choose A Valid Option")
+
+        selected_file = queries_files[choice]
+        queries = major.load_queries(selected_file)
+
+        asyncio.run(major.main(queries=queries))
+    except (ValueError, IndexError, FileNotFoundError) as e:
+        major.print_timestamp(f"{Fore.RED + Style.BRIGHT}[ {str(e)} ]{Style.RESET_ALL}")
     except KeyboardInterrupt:
         sys.exit(0)
