@@ -21,7 +21,6 @@ class Major:
             'Origin': 'https://major.bot',
             'Pragma': 'no-cache',
             'Priority': 'u=3, i',
-            'Referer': 'https://major.bot/?tgWebAppStartParam=6094625904',
             'Sec-Fetch-Dest': 'empty',
             'Sec-Fetch-Mode': 'cors',
             'Sec-Fetch-Site': 'same-origin',
@@ -85,9 +84,6 @@ class Major:
         url = 'https://major.bot/api/auth/tg/'
         accounts = []
         for query in queries:
-            if not query:
-                self.print_timestamp(f"{Fore.RED + Style.BRIGHT}[ Empty Query Found ]{Style.RESET_ALL}")
-                return
             data = json.dumps({'init_data':query})
             headers = {
                 **self.headers,
@@ -114,16 +110,15 @@ class Major:
 
     async def visit(self, token: str, first_name: str):
         url = 'https://major.bot/api/user-visits/visit/'
-        data = json.dumps({})
         headers = {
             **self.headers,
             'Authorization': token,
-            'Content-Length': str(len(data)),
+            'Content-Length': '0',
             'Content-Type': 'application/json'
         }
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-                async with session.post(url=url, headers=headers, data=data) as response:
+                async with session.post(url=url, headers=headers) as response:
                     if response.status in [500, 520]:
                         self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
@@ -239,16 +234,14 @@ class Major:
 
     async def join_squad(self, token: str, first_name: str):
         url = f'https://major.bot/api/squads/1904705154/join/'
-        data = json.dumps({})
         headers = {
             **self.headers,
             'Authorization': token,
-            'Content-Length': str(len(data)),
-            'Content-Type': 'application/json'
+            'Content-Length': '0'
         }
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-                async with session.post(url=url, headers=headers, data=data) as response:
+                async with session.post(url=url, headers=headers) as response:
                     if response.status in [500, 520]:
                         self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
@@ -267,16 +260,14 @@ class Major:
 
     async def leave_squad(self, token: str, first_name: str):
         url = f'https://major.bot/api/squads/leave/'
-        data = json.dumps({})
         headers = {
             **self.headers,
             'Authorization': token,
-            'Content-Length': str(len(data)),
-            'Content-Type': 'application/json'
+            'Content-Length': '0'
         }
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-                async with session.post(url=url, headers=headers, data=data) as response:
+                async with session.post(url=url, headers=headers) as response:
                     if response.status in [500, 520]:
                         self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
@@ -448,15 +439,15 @@ class Major:
 
     async def roulette(self, token: str, first_name: str):
         url = 'https://major.bot/api/roulette/'
-        data = json.dumps({})
         headers = {
             **self.headers,
             'Authorization': token,
-            'Content-Length': str(len(data))
+            'Content-Length': '0',
+            'Content-Type': 'application/json'
         }
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
-                async with session.post(url=url, headers=headers, data=data) as response:
+                async with session.post(url=url, headers=headers) as response:
                     if response.status == 400:
                         error_coins = await response.json()
                         if 'detail' in error_coins:
@@ -575,9 +566,6 @@ class Major:
                             if task['is_completed'] == False:
                                 await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
                                 await asyncio.sleep(3)
-
-                    user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
-                    total_rating += user['rating'] if user else 0
 
                 self.print_timestamp(
                     f"{Fore.CYAN + Style.BRIGHT}[ Total Account {len(accounts)} ]{Style.RESET_ALL}"
