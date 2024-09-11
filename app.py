@@ -567,6 +567,11 @@ class Major:
                                 await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
                                 await asyncio.sleep(3)
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
+                    if user is None:
+                        self.print_timestamp(
+                            f"{Fore.RED + Style.BRIGHT}[ Failed To Retrieve User Balance For {account['first_name']} ]{Style.RESET_ALL}"
+                        )
+                        continue
                     total_rating += user['rating'] if user else 0
 
                 self.print_timestamp(
