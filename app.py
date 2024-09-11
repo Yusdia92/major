@@ -566,6 +566,8 @@ class Major:
                             if task['is_completed'] == False:
                                 await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
                                 await asyncio.sleep(3)
+                    user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
+                    total_rating += user['rating'] if user else 0
 
                 self.print_timestamp(
                     f"{Fore.CYAN + Style.BRIGHT}[ Total Account {len(accounts)} ]{Style.RESET_ALL}"
