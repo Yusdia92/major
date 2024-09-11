@@ -555,6 +555,13 @@ class Major:
                     elif user['squad_id'] == 1904705154:
                         await self.squad(token=account['token'], first_name=account['first_name'], squad_id=user['squad_id'])
 
+                self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ Games ]{Style.RESET_ALL}")
+                for account in accounts:
+                    await self.durov(token=account['token'], first_name=account['first_name'])
+                    await self.coins(token=account['token'], first_name=account['first_name'], reward_coins=915)
+                    await self.roulette(token=account['token'], first_name=account['first_name'])
+                    await self.swipe_coin(token=account['token'], first_name=account['first_name'], reward_swipe_coins=3200)
+
                 self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ Tasks ]{Style.RESET_ALL}")
                 for account in accounts:
                     for type in ['true', 'false']:
@@ -568,13 +575,6 @@ class Major:
                             if task['is_completed'] == False:
                                 await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
                                 await asyncio.sleep(3)
-
-                self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ Games ]{Style.RESET_ALL}")
-                for account in accounts:
-                    await self.durov(token=account['token'], first_name=account['first_name'])
-                    await self.coins(token=account['token'], first_name=account['first_name'], reward_coins=915)
-                    await self.roulette(token=account['token'], first_name=account['first_name'])
-                    await self.swipe_coin(token=account['token'], first_name=account['first_name'], reward_swipe_coins=3200)
 
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
                     total_rating += user['rating'] if user else 0
