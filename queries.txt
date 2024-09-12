@@ -1,6 +1,0 @@
-query_id=aaa
-query_id=bbb
-user=ccc
-user=ddd
-query_id=eee
-user=fff
