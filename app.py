@@ -98,7 +98,7 @@ class Major:
                         token = f"Bearer {tg_auth['access_token']}"
                         id = tg_auth['user']['id']
                         first_name = tg_auth['user']['first_name'] or self.faker.first_name()
-                        accounts.append({'first_name': first_name, 'id': id, 'token': token})
+                        accounts.append({'token': token, 'id': id, 'first_name': first_name})
             except (aiohttp.ClientResponseError, aiohttp.ContentTypeError, Exception) as e:
                 self.print_timestamp(
                     f"{Fore.YELLOW + Style.BRIGHT}[ Failed To Process {query} ]{Style.RESET_ALL}"
@@ -120,12 +120,11 @@ class Major:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
                 async with session.post(url=url, headers=headers) as response:
                     if response.status in [500, 520]:
-                        self.print_timestamp(
+                        return self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
                             f"{Fore.YELLOW + Style.BRIGHT}[ Server Major Down ]{Style.RESET_ALL}"
                         )
-                        return None
                     response.raise_for_status()
                     visit = await response.json()
                     if visit['is_increased']:
@@ -135,18 +134,16 @@ class Major:
                                 f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
                                 f"{Fore.GREEN + Style.BRIGHT}[ Claimed Daily Visit ]{Style.RESET_ALL}"
                             )
-                        else:
-                            return self.print_timestamp(
-                                f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
-                                f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                                f"{Fore.YELLOW + Style.BRIGHT}[ Subscribe Major Community To Claim Your Daily Visit Bonus And Increase Your Streak ]{Style.RESET_ALL}"
-                            )
-                    else:
                         return self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                            f"{Fore.MAGENTA + Style.BRIGHT}[ Daily Visit Already Claimed ]{Style.RESET_ALL}"
+                            f"{Fore.YELLOW + Style.BRIGHT}[ Subscribe Major Community To Claim Your Daily Visit Bonus And Increase Your Streak ]{Style.RESET_ALL}"
                         )
+                    return self.print_timestamp(
+                        f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT}[ Daily Visit Already Claimed ]{Style.RESET_ALL}"
+                    )
         except aiohttp.ClientResponseError as e:
             return self.print_timestamp(f"{Fore.RED + Style.BRIGHT}[ {first_name} An HTTP Error Occurred While Fetching Streak: {str(e.message)} ]{Style.RESET_ALL}")
         except (Exception, aiohttp.ContentTypeError) as e:
@@ -212,12 +209,11 @@ class Major:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
                 async with session.get(url=url, headers=headers) as response:
                     if response.status in [500, 520]:
-                        self.print_timestamp(
+                        return self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
                             f"{Fore.YELLOW + Style.BRIGHT}[ Server Major Down ]{Style.RESET_ALL}"
                         )
-                        return None
                     response.raise_for_status()
                     squad = await response.json()
                     return self.print_timestamp(
@@ -243,12 +239,11 @@ class Major:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
                 async with session.post(url=url, headers=headers) as response:
                     if response.status in [500, 520]:
-                        self.print_timestamp(
+                        return self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
                             f"{Fore.YELLOW + Style.BRIGHT}[ Server Major Down ]{Style.RESET_ALL}"
                         )
-                        return None
                     response.raise_for_status()
                     join_squad = await response.json()
                     if join_squad['status'] == 'ok':
@@ -269,12 +264,11 @@ class Major:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
                 async with session.post(url=url, headers=headers) as response:
                     if response.status in [500, 520]:
-                        self.print_timestamp(
+                        return self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
                             f"{Fore.YELLOW + Style.BRIGHT}[ Server Major Down ]{Style.RESET_ALL}"
                         )
-                        return None
                     response.raise_for_status()
                     leave_squad = await response.json()
                     if leave_squad['status'] == 'ok':
@@ -321,7 +315,8 @@ class Major:
         try:
             async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
                 async with session.post(url=url, headers=headers, data=data) as response:
-                    if response.status in [500, 520]:
+                    if response.status == 400: return
+                    elif response.status in [500, 520]:
                         return self.print_timestamp(
                             f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
@@ -371,12 +366,10 @@ class Major:
                         error_coins = await response.json()
                         if 'detail' in error_coins:
                             if 'blocked_until' in error_coins['detail']:
-                                end_time = datetime.fromtimestamp(error_coins['detail']['blocked_until']).astimezone()
-                                formatted_end_time = end_time.strftime('%x %X %Z')
                                 return self.print_timestamp(
                                     f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                                     f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                                    f"{Fore.YELLOW + Style.BRIGHT}[ Can Play Puzzle Durov At {formatted_end_time} ]{Style.RESET_ALL}"
+                                    f"{Fore.YELLOW + Style.BRIGHT}[ Can Play Puzzle Durov At {datetime.fromtimestamp(error_coins['detail']['blocked_until']).astimezone().strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                                 )
                     elif response.status in [500, 520]:
                         return self.print_timestamp(
@@ -411,12 +404,10 @@ class Major:
                         error_coins = await response.json()
                         if 'detail' in error_coins:
                             if 'blocked_until' in error_coins['detail']:
-                                end_time = datetime.fromtimestamp(error_coins['detail']['blocked_until']).astimezone()
-                                formatted_end_time = end_time.strftime('%x %X %Z')
                                 return self.print_timestamp(
                                     f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                                     f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                                    f"{Fore.YELLOW + Style.BRIGHT}[ Can Play Hold Coin At {formatted_end_time} ]{Style.RESET_ALL}"
+                                    f"{Fore.YELLOW + Style.BRIGHT}[ Can Play Hold Coin At {datetime.fromtimestamp(error_coins['detail']['blocked_until']).astimezone().strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                                 )
                     elif response.status in [500, 520]:
                         return self.print_timestamp(
@@ -452,12 +443,10 @@ class Major:
                         error_coins = await response.json()
                         if 'detail' in error_coins:
                             if 'blocked_until' in error_coins['detail']:
-                                end_time = datetime.fromtimestamp(error_coins['detail']['blocked_until']).astimezone()
-                                formatted_end_time = end_time.strftime('%x %X %Z')
                                 return self.print_timestamp(
                                     f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                                     f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                                    f"{Fore.YELLOW + Style.BRIGHT}[ Can Play Roulette At {formatted_end_time} ]{Style.RESET_ALL}"
+                                    f"{Fore.YELLOW + Style.BRIGHT}[ Can Play Roulette At {datetime.fromtimestamp(error_coins['detail']['blocked_until']).astimezone().strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                                 )
                     elif response.status in [500, 520]:
                         return self.print_timestamp(
@@ -493,13 +482,17 @@ class Major:
                         error_coins = await response.json()
                         if 'detail' in error_coins:
                             if 'blocked_until' in error_coins['detail']:
-                                end_time = datetime.fromtimestamp(error_coins['detail']['blocked_until']).astimezone()
-                                formatted_end_time = end_time.strftime('%x %X %Z')
                                 return self.print_timestamp(
                                     f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
                                     f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
-                                    f"{Fore.YELLOW + Style.BRIGHT}[ Can Play Swipe Coin At {formatted_end_time} ]{Style.RESET_ALL}"
+                                    f"{Fore.YELLOW + Style.BRIGHT}[ Can Play Swipe Coin At {datetime.fromtimestamp(error_coins['detail']['blocked_until']).astimezone().strftime('%x %X %Z')} ]{Style.RESET_ALL}"
                                 )
+                    elif response.status in [500, 520]:
+                        return self.print_timestamp(
+                            f"{Fore.CYAN + Style.BRIGHT}[ {first_name} ]{Style.RESET_ALL}"
+                            f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
+                            f"{Fore.YELLOW + Style.BRIGHT}[ Server Major Down ]{Style.RESET_ALL}"
+                        )
                     response.raise_for_status()
                     swipe_coin = await response.json()
                     if swipe_coin['success']:
@@ -524,12 +517,9 @@ class Major:
                     await self.visit(token=account['token'], first_name=account['first_name'])
 
                     streak = await self.streak(token=account['token'], first_name=account['first_name'])
+                    if streak is None: continue
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
-                    if user is None:
-                        self.print_timestamp(
-                            f"{Fore.RED + Style.BRIGHT}[ Failed To Retrieve User Balance For {account['first_name']} ]{Style.RESET_ALL}"
-                        )
-                        continue
+                    if user is None: continue
 
                     self.print_timestamp(
                         f"{Fore.CYAN + Style.BRIGHT}[ {account['first_name']} ]{Style.RESET_ALL}"
@@ -557,21 +547,13 @@ class Major:
                 for account in accounts:
                     for type in ['true', 'false']:
                         tasks = await self.tasks(token=account['token'], type=type, first_name=account['first_name'])
-                        if tasks is None:
-                            self.print_timestamp(
-                                f"{Fore.RED + Style.BRIGHT}[ Failed To Retrieve Tasks For {account['first_name']} ]{Style.RESET_ALL}"
-                            )
-                            continue
+                        if tasks is None: continue
                         for task in tasks:
                             if task['is_completed'] == False:
                                 await self.complete_task(token=account['token'], first_name=account['first_name'], task_id=task['id'], task_title=task['title'], task_award=task['award'])
                                 await asyncio.sleep(3)
+
                     user = await self.user(token=account['token'], id=account['id'], first_name=account['first_name'])
-                    if user is None:
-                        self.print_timestamp(
-                            f"{Fore.RED + Style.BRIGHT}[ Failed To Retrieve User Balance For {account['first_name']} ]{Style.RESET_ALL}"
-                        )
-                        continue
                     total_rating += user['rating'] if user else 0
 
                 self.print_timestamp(
@@ -615,13 +597,13 @@ if __name__ == '__main__':
             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
             f"{Fore.CYAN + Style.BRIGHT}[ Use 'queries.txt' Without Splitting ]{Style.RESET_ALL}"
         )
+
         initial_choice = int(input(
             f"{Fore.BLUE + Style.BRIGHT}[ {datetime.now().astimezone().strftime('%x %X %Z')} ]{Style.RESET_ALL}"
             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
             f"{Fore.YELLOW + Style.BRIGHT}[ Select An Option ]{Style.RESET_ALL}"
             f"{Fore.WHITE + Style.BRIGHT} | {Style.RESET_ALL}"
         ))
-
         if initial_choice == 1:
             accounts = int(input(
                 f"{Fore.YELLOW + Style.BRIGHT}[ How Much Account That You Want To Process Each Terminal ]{Style.RESET_ALL}"
