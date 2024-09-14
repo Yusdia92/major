@@ -229,7 +229,7 @@ class Major:
             return self.print_timestamp(f"{Fore.RED + Style.BRIGHT}[ {first_name} An Unexpected Error Occurred While Fetching Squad: {str(e)} ]{Style.RESET_ALL}")
 
     async def join_squad(self, token: str, first_name: str):
-        url = f'https://major.bot/api/squads/1904705154/join/'
+        url = f'https://major.bot/api/squads/2183537068/join/'
         headers = {
             **self.headers,
             'Authorization': token,
