@@ -531,9 +531,9 @@ class Major:
 
                     if user['squad_id'] is None:
                         await self.join_squad(token=account['token'], first_name=account['first_name'])
-                    elif user['squad_id'] != 1904705154:
+                    elif user['squad_id'] != 2183537068:
                         await self.leave_squad(token=account['token'], first_name=account['first_name'])
-                    elif user['squad_id'] == 1904705154:
+                    elif user['squad_id'] == 2183537068:
                         await self.squad(token=account['token'], first_name=account['first_name'], squad_id=user['squad_id'])
 
                 self.print_timestamp(f"{Fore.WHITE + Style.BRIGHT}[ Games ]{Style.RESET_ALL}")
