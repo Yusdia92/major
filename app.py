@@ -247,7 +247,7 @@ class Major:
                     response.raise_for_status()
                     join_squad = await response.json()
                     if join_squad['status'] == 'ok':
-                        return await self.squad(token=token, squad_id=1904705154, first_name=first_name)
+                        return await self.squad(token=token, squad_id=2183537068, first_name=first_name)
         except aiohttp.ClientResponseError as e:
             return self.print_timestamp(f"{Fore.RED + Style.BRIGHT}[ {first_name} An HTTP Error Occurred While Join Squad: {str(e.message)} ]{Style.RESET_ALL}")
         except (Exception, aiohttp.ContentTypeError) as e:
